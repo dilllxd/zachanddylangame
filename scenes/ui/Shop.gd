@@ -196,11 +196,11 @@ func _build_layout() -> void:
  var toggle := $Toggle
  remove_child(toggle)
  dock.add_child(toggle)
- toggle.text = "＋  Shop"
+ toggle.text = "Shop"
  toggle.custom_minimum_size = Vector2(148,52)
  for i in 2:
   var button := Button.new()
-  button.text = ["◇  Merge","⌂  Visit"][i]
+  button.text = ["Merge","Visit"][i]
   button.custom_minimum_size = Vector2(148,52)
   if i == 0:
    button.pressed.connect(func():

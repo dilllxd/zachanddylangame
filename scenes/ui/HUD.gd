@@ -44,7 +44,7 @@ func _process(_delta: float) -> void:
 func _on_money_changed(total: int) -> void:
  var money: Label = get_meta("money_label", null)
  if money == null: return
- money.text = "●  $%s" % total
+ money.text = "$%s" % total
  money.pivot_offset = money.size * 0.5
  if money_tween: money_tween.kill()
  money.scale = Vector2.ONE * 1.12

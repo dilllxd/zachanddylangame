@@ -80,6 +80,9 @@ func _button(box: VBoxContainer, text: String, action: Callable) -> Button:
 
 func _process(_delta: float) -> void:
 	visible = not get_tree().paused
+	if panel.visible:
+		panel.offset_top = -panel.size.y * 0.5
+		panel.offset_bottom = panel.size.y * 0.5
 	if get_tree().paused:
 		confirmation.hide()
 
