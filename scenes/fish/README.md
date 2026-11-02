@@ -1,0 +1,1 @@
+# scenes/fish`nFish.tscn is one fish. Fish.gd is thin glue that owns its FishData and wires the parts.`nHunger.gd fullness and is_hungry. Movement.gd steering, speed, flip, bounds. FoodSeeker.gd picks/claims the nearest pellet and leads it.`nFullnessBar.tscn the little bar shown when hungry or right after eating.`n

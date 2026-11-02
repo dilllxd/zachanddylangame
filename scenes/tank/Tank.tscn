@@ -1,0 +1,109 @@
+[gd_scene format=3 uid="uid://bfvgqdeu1edxv"]
+
+[ext_resource type="Script" path="res://scenes/tank/Tank.gd" id="1"]
+[ext_resource type="PackedScene" path="res://scenes/decor/Decor.tscn" id="3"]
+[ext_resource type="Texture2D" path="res://assets/tank/sand.png" id="4"]
+[ext_resource type="Texture2D" path="res://assets/tank/rock_a.png" id="5"]
+[ext_resource type="Texture2D" path="res://assets/tank/rock_b.png" id="6"]
+[ext_resource type="Texture2D" path="res://assets/tank/seaweed_green.png" id="7"]
+[ext_resource type="Texture2D" path="res://assets/tank/seaweed_pink.png" id="8"]
+[ext_resource type="Texture2D" path="res://assets/tank/seaweed_tall.png" id="9"]
+[ext_resource type="Script" path="res://scenes/tank/Navigator.gd" id="10"]
+
+[node name="Tank" type="Node2D" unique_id=1340685501]
+script = ExtResource("1")
+
+[node name="Water" type="ColorRect" parent="." unique_id=1828651342]
+offset_right = 800.0
+offset_bottom = 450.0
+mouse_filter = 2
+color = Color(0.16, 0.45, 0.7, 1)
+
+[node name="Sand" type="Sprite2D" parent="." unique_id=1799201302]
+texture_repeat = 2
+position = Vector2(0, 390)
+texture = ExtResource("4")
+centered = false
+region_enabled = true
+region_rect = Rect2(0, 0, 800, 60)
+
+[node name="Decor" type="Node2D" parent="." unique_id=1133360965]
+
+[node name="SeaweedBack" parent="Decor" unique_id=2000453860 instance=ExtResource("3")]
+position = Vector2(120, 410)
+scale = Vector2(2, 2)
+blocks_fish = false
+
+[node name="Sprite2D" parent="Decor/SeaweedBack" index="0" unique_id=378616721]
+texture = ExtResource("9")
+
+[node name="RockBig" parent="Decor" unique_id=987918535 instance=ExtResource("3")]
+position = Vector2(390, 410)
+scale = Vector2(3, 3)
+blocks_fish = false
+
+[node name="Sprite2D" parent="Decor/RockBig" index="0" unique_id=1553810444]
+texture = ExtResource("5")
+
+[node name="RockSmall" parent="Decor" unique_id=1615819471 instance=ExtResource("3")]
+position = Vector2(470, 410)
+scale = Vector2(1.6, 1.6)
+blocks_fish = false
+
+[node name="Sprite2D" parent="Decor/RockSmall" index="0" unique_id=1978658975]
+texture = ExtResource("6")
+
+[node name="RockLeft" parent="Decor" unique_id=939865750 instance=ExtResource("3")]
+position = Vector2(200, 410)
+scale = Vector2(1.8, 1.8)
+blocks_fish = false
+
+[node name="Sprite2D" parent="Decor/RockLeft" index="0" unique_id=1885803979]
+texture = ExtResource("6")
+
+[node name="RockTower" parent="Decor" unique_id=162710379 instance=ExtResource("3")]
+position = Vector2(630, 410)
+scale = Vector2(2.2, 2.2)
+blocks_fish = false
+
+[node name="Sprite2D" parent="Decor/RockTower" index="0" unique_id=150148753]
+texture = ExtResource("5")
+
+[node name="RockTowerTop" parent="Decor" unique_id=259519697 instance=ExtResource("3")]
+position = Vector2(630, 350)
+scale = Vector2(1.6, 1.6)
+blocks_fish = false
+
+[node name="Sprite2D" parent="Decor/RockTowerTop" index="0" unique_id=792548669]
+texture = ExtResource("6")
+
+[node name="SeaweedPink" parent="Decor" unique_id=196825546 instance=ExtResource("3")]
+position = Vector2(290, 410)
+scale = Vector2(1.6, 1.6)
+blocks_fish = false
+
+[node name="Sprite2D" parent="Decor/SeaweedPink" index="0" unique_id=1553453472]
+texture = ExtResource("8")
+
+[node name="SeaweedGreen" parent="Decor" unique_id=443146063 instance=ExtResource("3")]
+position = Vector2(540, 410)
+scale = Vector2(1.8, 1.8)
+blocks_fish = false
+
+[node name="Sprite2D" parent="Decor/SeaweedGreen" index="0" unique_id=1482817200]
+texture = ExtResource("7")
+
+[node name="SeaweedRight" parent="Decor" unique_id=57952547 instance=ExtResource("3")]
+position = Vector2(720, 410)
+scale = Vector2(1.6, 1.6)
+blocks_fish = false
+
+[node name="Sprite2D" parent="Decor/SeaweedRight" index="0" unique_id=561198834]
+texture = ExtResource("7")
+
+[node name="Food" type="Node2D" parent="." unique_id=976028430]
+
+[node name="Fishes" type="Node2D" parent="." unique_id=843700280]
+
+[node name="Navigator" type="Node2D" parent="." unique_id=499201809]
+script = ExtResource("10")

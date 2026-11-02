@@ -1,0 +1,1 @@
+# scenes/tank`nTank.tscn is the aquarium: water, sand, Decor, Food and Fishes containers. Tank.gd owns bounds, click to drop food and floor height.`nNavigator.gd is optional A* around solid decor, dormant while decor is cosmetic.`n

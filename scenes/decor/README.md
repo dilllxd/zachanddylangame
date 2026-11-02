@@ -1,0 +1,1 @@
+# scenes/decor`nDecor.tscn is any cosmetic prop: a Sprite2D anchored at its bottom. blocks_fish is off; flip it on to make a prop solid via Navigator.`n

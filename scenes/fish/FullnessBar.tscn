@@ -1,0 +1,6 @@
+[gd_scene format=3 uid="uid://bhhns2jmd23l4"]
+
+[ext_resource type="Script" path="res://scenes/fish/FullnessBar.gd" id="1"]
+
+[node name="FullnessBar" type="Node2D" unique_id=1029596595]
+script = ExtResource("1")

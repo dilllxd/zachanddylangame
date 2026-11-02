@@ -1,0 +1,23 @@
+# Godot generated files and local data
+.godot/
+.godot_editor/
+export/
+exports/
+user/
+user_data/
+*.tmp
+save.json
+save.json.*
+
+# Backstitch local state, tools, and optional collaboration plugin
+.backstitch/
+.backstitch_version
+backstitch.cfg
+backstitch-launcher*
+addons/backstitch/
+
+# Local credentials and OS files
+.env
+.env.*
+.DS_Store
+Thumbs.db

@@ -1,0 +1,71 @@
+[gd_scene format=3 uid="uid://b7nik153lni3m"]
+
+[ext_resource type="Script" path="res://scenes/ui/PauseMenu.gd" id="1"]
+
+[node name="PauseMenu" type="Control" unique_id=59931392]
+process_mode = 3
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 0
+script = ExtResource("1")
+
+[node name="Background" type="ColorRect" parent="." unique_id=738289313]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(0.02, 0.06, 0.1, 0.78)
+
+[node name="Center" type="CenterContainer" parent="." unique_id=1840961967]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="Menu" type="VBoxContainer" parent="Center" unique_id=1447199497]
+custom_minimum_size = Vector2(260, 0)
+layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="Title" type="Label" parent="Center/Menu" unique_id=2117711003]
+layout_mode = 2
+theme_override_font_sizes/font_size = 36
+text = "Paused"
+horizontal_alignment = 1
+
+[node name="Space" type="Control" parent="Center/Menu" unique_id=1436595406]
+custom_minimum_size = Vector2(0, 12)
+layout_mode = 2
+mouse_filter = 2
+
+[node name="Resume" type="Button" parent="Center/Menu" unique_id=924018516]
+custom_minimum_size = Vector2(0, 48)
+layout_mode = 2
+theme_override_font_sizes/font_size = 22
+text = "Resume"
+
+[node name="ToTitle" type="Button" parent="Center/Menu" unique_id=1061362909]
+custom_minimum_size = Vector2(0, 48)
+layout_mode = 2
+theme_override_font_sizes/font_size = 22
+text = "Quit to Title"
+
+[node name="Quit" type="Button" parent="Center/Menu" unique_id=1331565166]
+custom_minimum_size = Vector2(0, 48)
+layout_mode = 2
+theme_override_font_sizes/font_size = 22
+text = "Quit"
+
+[connection signal="pressed" from="Center/Menu/Resume" to="." method="_on_resume_pressed"]
+[connection signal="pressed" from="Center/Menu/ToTitle" to="." method="_on_title_pressed"]
+[connection signal="pressed" from="Center/Menu/Quit" to="." method="_on_quit_pressed"]

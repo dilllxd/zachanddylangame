@@ -1,0 +1,27 @@
+[gd_scene format=3 uid="uid://bui3818edofxs"]
+
+[ext_resource type="Script" uid="uid://bcbhauj1vh1iq" path="res://scenes/fish/Fish.gd" id="1"]
+[ext_resource type="Texture2D" uid="uid://bvili6m42dxqh" path="res://assets/fish/goldfish.png" id="2"]
+[ext_resource type="Resource" uid="uid://dvbmlux10g146" path="res://data/fish/goldfish.tres" id="3"]
+[ext_resource type="Script" uid="uid://c8raxet0l6fv6" path="res://scenes/fish/Hunger.gd" id="4"]
+[ext_resource type="Script" uid="uid://npbhvxcp26rm" path="res://scenes/fish/Movement.gd" id="5"]
+[ext_resource type="Script" uid="uid://b1nc52w3tqcm0" path="res://scenes/fish/FoodSeeker.gd" id="6"]
+[ext_resource type="PackedScene" uid="uid://bhhns2jmd23l4" path="res://scenes/fish/FullnessBar.tscn" id="7"]
+
+[node name="Fish" type="Node2D" unique_id=56198579]
+script = ExtResource("1")
+data = ExtResource("3")
+
+[node name="Sprite2D" type="Sprite2D" parent="." unique_id=1650280735]
+texture = ExtResource("2")
+
+[node name="Hunger" type="Node" parent="." unique_id=1060819151]
+script = ExtResource("4")
+
+[node name="Movement" type="Node" parent="." unique_id=659579068]
+script = ExtResource("5")
+
+[node name="FoodSeeker" type="Node" parent="." unique_id=188236744]
+script = ExtResource("6")
+
+[node name="FullnessBar" parent="." unique_id=765891372 instance=ExtResource("7")]
