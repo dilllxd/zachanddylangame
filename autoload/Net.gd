@@ -42,13 +42,14 @@ func visit(room: String, fish: Node) -> void:
 	if not mode.is_empty() or tank() == null:
 		return
 	var pending := not GameState.gift_outbox.is_empty()
-	if not pending and (not is_instance_valid(fish) or fish.get_parent() != tank().get_node("Fishes")):
+	if not pending and (not is_instance_valid(fish) or fish.is_queued_for_deletion() or fish.has_meta("visitor") or fish.get_parent() != tank().get_node("Fishes")):
 		return
 	_selected = fish
 	code = room.strip_edges().to_upper()
 	_connect({"op": "join", "code": code, "name": GameState.player_name,
 		"fish": {"data": GameState.gift_outbox.data if pending else fish.data.resource_path,
-		"fullness": 1.0 if pending else fish.fullness}}, "joining")
+		"fullness": 1.0 if pending else fish.fullness,
+		"tier": GameState.gift_outbox.get("tier", 0) if pending else fish.tier}}, "joining")
 
 func _connect(request: Dictionary, next_mode: String) -> void:
 	socket = WebSocketPeer.new()
@@ -155,9 +156,10 @@ func _arrival(m: Dictionary) -> void:
 	if _guests.has(id) or not m.get("fish") is Dictionary:
 		return
 	var data := fish_data(m.fish.get("data"))
-	if data == null:
+	if data == null or not FishTier.valid(m.fish.get("tier", 0)):
 		return
 	var fish := FISH.instantiate()
+	fish.tier = int(m.fish.get("tier", 0))
 	fish.data = data
 	fish.set_meta("visitor", id)
 	fish.position = tank().navigator.random_open_point()
@@ -208,9 +210,10 @@ func _host_message(id: String, body: Dictionary) -> void:
 				_to_guest(id, {"op": "gift_ack", "id": transaction})
 				return
 			var data := fish_data(transfer.get("data"))
-			if data == null:
+			if data == null or not FishTier.valid(transfer.get("tier", 0)):
 				return
 			var fish := FISH.instantiate()
+			fish.tier = int(transfer.get("tier", 0))
 			fish.data = data
 			fish.position = tank().navigator.random_open_point()
 			tank().get_node("Fishes").add_child(fish)
@@ -250,7 +253,7 @@ func gift() -> void:
 	var fish: Node = _selected
 	var parent := fish.get_parent()
 	var transfer := {"id": Crypto.new().generate_random_bytes(16).hex_encode(),
-		"host": _host_id, "data": fish.data.resource_path}
+		"host": _host_id, "data": fish.data.resource_path, "tier": fish.tier}
 	# Durable outbox: remove locally and save BEFORE asking host to commit.
 	parent.remove_child(fish)
 	GameState.gift_outbox = transfer
@@ -272,7 +275,7 @@ func _snapshot() -> Dictionary:
 	var fishes: Array = []
 	var pellets: Array = []
 	for fish in tank().get_node("Fishes").get_children():
-		fishes.append({"id": str(fish.get_instance_id()), "data": fish.data.resource_path,
+		fishes.append({"id": str(fish.get_instance_id()), "data": fish.data.resource_path, "tier": fish.tier,
 			"position": [fish.position.x, fish.position.y], "flip": fish.get_node("Sprite2D").flip_h,
 			"name": str(_guests.get(str(fish.get_meta("visitor", "")), {}).get("name", ""))})
 	for food in tank().get_node("Food").get_children():
@@ -310,6 +313,11 @@ func _render(m: Dictionary) -> void:
 				if data == null:
 					continue
 				sprite.texture = data.sprite
+				var tier: Variant = entry.get("tier", 0)
+				if not FishTier.valid(tier):
+					sprite.free()
+					continue
+				FishTier.style(sprite, int(tier))
 				var label := Label.new()
 				label.text = str(entry.get("name", "")).left(24)
 				label.position = Vector2(-32, -44)

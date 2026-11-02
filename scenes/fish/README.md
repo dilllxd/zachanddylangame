@@ -1,1 +1,2 @@
 # scenes/fish`nFish.tscn is one fish. Fish.gd is thin glue that owns its FishData and wires the parts.`nHunger.gd fullness and is_hungry. Movement.gd steering, speed, flip, bounds. FoodSeeker.gd picks/claims the nearest pellet and leads it.`nFullnessBar.tscn the little bar shown when hungry or right after eating.`n
+Fish instances have tier 0..3, tint and 12% sprite growth per tier. Fullness bars remain unchanged. Eating uses FishTier.payout, including recycled food.

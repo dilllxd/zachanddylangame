@@ -86,7 +86,7 @@ func _toggle() -> void:
 			for fish in tank.get_node("Fishes").get_children():
 				if not fish.has_meta("visitor"):
 					owned.append(fish)
-					choices.add_item("%s #%d" % [fish.data.name, owned.size()])
+					choices.add_item("%s #%d" % [FishTier.title(fish.data, fish.tier), owned.size()])
 		_refresh()
 
 func _host() -> void:

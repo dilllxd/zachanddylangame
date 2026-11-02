@@ -46,6 +46,7 @@ func save_game() -> void:
 			return
 		fish_records.append({
 			"data": fish.data.resource_path,
+			"tier": fish.tier,
 			"fullness": fish.fullness,
 			"position": [fish.position.x, fish.position.y],
 		})
@@ -106,6 +107,8 @@ func load_tank(tank: Node2D) -> bool:
 			return false
 		if not pos is Array or pos.size() != 2 or not _number(pos[0]) or not _number(pos[1]):
 			return false
+		if not FishTier.valid(entry.get("tier", 0)):
+			return false
 		resources.append(data)
 	_loading = true
 	GameState.tank_id = str(record.get("tank_id", ""))
@@ -120,6 +123,7 @@ func load_tank(tank: Node2D) -> bool:
 		var entry: Dictionary = record.fish[i]
 		var fish := FISH_SCENE.instantiate()
 		fish.data = resources[i]
+		fish.tier = int(entry.get("tier", 0))
 		fish.position = Vector2(entry.position[0], entry.position[1]).clamp(tank.bounds.position, tank.bounds.end)
 		tank.get_node("Fishes").add_child(fish)
 		fish.fullness = clampf(entry.fullness, 0.0, 1.0)
@@ -136,8 +140,10 @@ func offline_credit(record: Dictionary, resources: Array[FishData]) -> int:
 	var seconds := clampf(Time.get_unix_time_from_system() - float(record.saved_at), 0.0, 8.0 * 3600.0)
 	# Conservative estimate: one recycled pellet per fish per minute, capped by hunger.
 	var per_second := 0.0
-	for data in resources:
-		per_second += roundi(data.pellet_value * 0.5) * minf(1.0 / 60.0, maxf(data.hunger_rate, 0.0) / 0.25)
+	for i in resources.size():
+		var data := resources[i]
+		var tier := int(record.fish[i].get("tier", 0))
+		per_second += roundi(FishTier.payout(data, tier) * 0.5) * minf(1.0 / 60.0, maxf(data.hunger_rate, 0.0) / 0.25)
 	return floori(seconds * per_second)
 
 func _number(value: Variant) -> bool:

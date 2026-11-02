@@ -66,3 +66,39 @@ func _on_fish_bought(data: FishData) -> void:
 	fish.position = navigator.random_open_point()
 	$Fishes.add_child(fish)
 	SaveManager.save_game()
+
+# Recompute owned candidates at click time; never trust stale UI counts.
+func merge_candidates(data: FishData, tier: int) -> Array[Node]:
+	var result: Array[Node] = []
+	for fish in $Fishes.get_children():
+		if not fish.has_meta("visitor") and not fish.is_queued_for_deletion() and fish.data == data and fish.tier == tier:
+			result.append(fish)
+	return result
+
+func merge_fish(data: FishData, tier: int) -> Node:
+	if get_tree().paused or Net.visiting() or not FishTier.valid(tier) or tier >= FishTier.MAX:
+		return null
+	var candidates := merge_candidates(data, tier)
+	if candidates.size() < 3 or GameState.money < FishTier.fee(data, tier):
+		return null
+	var point := Vector2.ZERO
+	var fullness := 0.0
+	for i in 3:
+		point += candidates[i].position
+		fullness += candidates[i].fullness
+	GameState.spend(FishTier.fee(data, tier))
+	for i in 3:
+		$Fishes.remove_child(candidates[i])
+		candidates[i].queue_free()
+	var fish := preload("res://scenes/fish/Fish.tscn").instantiate()
+	fish.data = data
+	fish.tier = tier + 1
+	fish.position = point / 3.0
+	$Fishes.add_child(fish)
+	fish.fullness = fullness / 3.0
+	var sprite: Sprite2D = fish.get_node("Sprite2D")
+	var target := sprite.scale
+	sprite.scale = target * 0.6
+	fish.create_tween().tween_property(sprite, "scale", target, 0.3).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	SaveManager.save_game()
+	return fish

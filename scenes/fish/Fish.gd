@@ -1,6 +1,7 @@
 extends Node2D
 
 @export var data: FishData
+@export_range(0, 3) var tier: int = 0
 @export var chase_mult: float = 2.2      # chase speed = swim_speed * this
 @export var eat_distance: float = 10.0
 @export var turn_rate: float = 5.0       # higher = snappier turns
@@ -31,6 +32,7 @@ func _ready() -> void:
 	bar.fish = self
 	if data and data.sprite:
 		$Sprite2D.texture = data.sprite
+	FishTier.style($Sprite2D, tier)
 	_retarget_timer = randf() * retarget_interval
 	await get_tree().process_frame
 	if not tank.navigator.is_open(position):
@@ -67,7 +69,7 @@ func _process(delta: float) -> void:
 
 func eat(pellet: Node2D) -> void:
 	hunger.feed(pellet.nutrition())
-	var payout := roundi((data.pellet_value if data else 5) * pellet.payout_mult)
+	var payout := roundi((FishTier.payout(data, tier) if data else 5) * pellet.payout_mult)
 	var feeder: String = pellet.feeder
 	pellet.eat()
 	bar.show_after_eating()

@@ -11,3 +11,5 @@ Tests must set SaveManager.enabled = false before adding Main to prevent reading
 Net owns the optional WebSocket visiting session, guest attribution and snapshot visuals. SaveManager also persists player name, tank identity, and gift outbox/receipts. Single-player needs no relay. See docs/Visiting.md.
 
 Sand Roomba upgrade: see res://scenes/feeder/README.md for recycling, persistence and offline earnings rules.
+
+Save records include fish tier; missing tier migrates to 0. Tier is validated 0..3, retained by visiting/gifts/durable outbox, replicated visually, and applied to visitor and offline payouts.

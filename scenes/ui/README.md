@@ -15,3 +15,5 @@ It hides during pause and rejects purchases while paused. Purchase spends once a
 VisitMenu is the compact tank-visiting dock. Open a room, enter a friend's code, choose a fish, leave, or confirm a permanent gift. Net owns networking rather than the UI. See docs/Visiting.md.
 
 Sand Roomba upgrade: see res://scenes/feeder/README.md for recycling, persistence and offline earnings rules.
+
+Shop Merge section lists owned same-species/same-tier groups of at least 3. Fees are base price * 2 * 4^current_tier. Button shows result payout and disables when unaffordable. Tank revalidates on click, removes three and spawns one next-tier fish with average fullness and a pop. No visitor fish, paused/away merges, or merging Royal fish.

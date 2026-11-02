@@ -12,3 +12,5 @@ Player names are capped at 24 characters and stored in the version-1 save alongs
 The relay is plaintext and room-code protected, not authenticated. Share codes privately, not in public posts. Do not send secrets. Only shipped FishData catalog paths may be loaded from peer messages; no scripts or arbitrary resources are accepted. Internet-hosted or adversarial play would need TLS, accounts, stronger economy validation, and server-side durable transfer storage.
 
 See Relay.md for service deployment/protocol. The default endpoint is ws://40.160.53.64:42067/.
+
+Brought and gifted fish retain tier. Relay arrival preserves optional tier (default 0) validated as integer 0..3. Snapshots carry tier for visual scale/tint.
