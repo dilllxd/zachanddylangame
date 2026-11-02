@@ -13,3 +13,5 @@ Shop controls consume mouse clicks before Tank's unhandled input; its root ignor
 It hides during pause and rejects purchases while paused. Purchase spends once and emits Events.fish_bought.
 
 VisitMenu is the compact tank-visiting dock. Open a room, enter a friend's code, choose a fish, leave, or confirm a permanent gift. Net owns networking rather than the UI. See docs/Visiting.md.
+
+Sand Roomba upgrade: see res://scenes/feeder/README.md for recycling, persistence and offline earnings rules.

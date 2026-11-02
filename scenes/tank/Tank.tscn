@@ -107,3 +107,7 @@ texture = ExtResource("7")
 
 [node name="Navigator" type="Node2D" parent="." unique_id=499201809]
 script = ExtResource("10")
+
+[node name="Maintenance" type="Node2D" parent="." unique_id=1830282566]
+
+[node name="Mess" type="Node2D" parent="Maintenance" unique_id=1575696160]

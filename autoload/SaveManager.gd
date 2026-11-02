@@ -58,6 +58,7 @@ func save_game() -> void:
 		"gift_receipts": GameState.gift_receipts,
 		"saved_at": int(Time.get_unix_time_from_system()),
 		"money": GameState.money,
+		"upgrades": GameState.upgrades,
 		"player_name": GameState.player_name,
 		"fish": fish_records,
 	}
@@ -111,6 +112,9 @@ func load_tank(tank: Node2D) -> bool:
 	GameState.gift_outbox = record.get("gift_outbox", {}) if record.get("gift_outbox", {}) is Dictionary else {}
 	GameState.gift_receipts = record.get("gift_receipts", {}) if record.get("gift_receipts", {}) is Dictionary else {}
 	GameState.money = int(record.money)
+	GameState.upgrades = {"roomba": true} if record.get("upgrades", {}) is Dictionary and record.get("upgrades", {}).get("roomba", false) == true else {}
+	GameState.offline_earned = offline_credit(record, resources)
+	GameState.money += GameState.offline_earned
 	GameState.player_name = str(record.get("player_name", "Player")).left(24)
 	for i in record.fish.size():
 		var entry: Dictionary = record.fish[i]
@@ -121,7 +125,20 @@ func load_tank(tank: Node2D) -> bool:
 		fish.fullness = clampf(entry.fullness, 0.0, 1.0)
 	Events.money_changed.emit(GameState.money)
 	_loading = false
+	# Persist the consumed timestamp and credit immediately to prevent repeat loads.
+	if GameState.offline_earned > 0:
+		save_game.call_deferred()
 	return true
+
+func offline_credit(record: Dictionary, resources: Array[FishData]) -> int:
+	if not GameState.upgrades.get("roomba", false) or not _number(record.get("saved_at")):
+		return 0
+	var seconds := clampf(Time.get_unix_time_from_system() - float(record.saved_at), 0.0, 8.0 * 3600.0)
+	# Conservative estimate: one recycled pellet per fish per minute, capped by hunger.
+	var per_second := 0.0
+	for data in resources:
+		per_second += roundi(data.pellet_value * 0.5) * minf(1.0 / 60.0, maxf(data.hunger_rate, 0.0) / 0.25)
+	return floori(seconds * per_second)
 
 func _number(value: Variant) -> bool:
 	return (value is int or value is float) and is_finite(float(value))

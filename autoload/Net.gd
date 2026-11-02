@@ -282,7 +282,7 @@ func _snapshot() -> Dictionary:
 
 func _show_visit() -> void:
 	SaveManager.save_game()
-	for path in ["Fishes", "Food"]:
+	for path in ["Fishes", "Food", "Maintenance"]:
 		tank().get_node(path).hide()
 		tank().get_node(path).process_mode = Node.PROCESS_MODE_DISABLED
 	_view = Node2D.new()
@@ -335,7 +335,7 @@ func leave(message: String = "Back in your tank.") -> void:
 	_view = null
 	_visuals.clear()
 	if visiting() and tank() != null:
-		for path in ["Fishes", "Food"]:
+		for path in ["Fishes", "Food", "Maintenance"]:
 			tank().get_node(path).show()
 			tank().get_node(path).process_mode = Node.PROCESS_MODE_INHERIT
 	mode = ""

@@ -9,3 +9,5 @@ Tank calls load_tank when Main starts. Missing, invalid, or unsupported saves fa
 Tests must set SaveManager.enabled = false before adding Main to prevent reading or writing a player's save.
 
 Net owns the optional WebSocket visiting session, guest attribution and snapshot visuals. SaveManager also persists player name, tank identity, and gift outbox/receipts. Single-player needs no relay. See docs/Visiting.md.
+
+Sand Roomba upgrade: see res://scenes/feeder/README.md for recycling, persistence and offline earnings rules.

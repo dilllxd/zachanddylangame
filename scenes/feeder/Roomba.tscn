@@ -1,0 +1,6 @@
+[gd_scene format=3 uid="uid://dnmb7267fjrq"]
+
+[ext_resource type="Script" path="res://scenes/feeder/Roomba.gd" id="1"]
+
+[node name="Roomba" type="Sprite2D" unique_id=2069601948]
+script = ExtResource("1")

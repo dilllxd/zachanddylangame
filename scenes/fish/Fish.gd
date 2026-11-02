@@ -73,4 +73,6 @@ func eat(pellet: Node2D) -> void:
 	bar.show_after_eating()
 	seeker.food_target = null
 	Net.payout(self, payout, feeder)
+	if randf() < 0.5:
+		tank.add_mess(position)
 	movement.pick_wander_target()

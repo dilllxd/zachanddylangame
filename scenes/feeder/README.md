@@ -1,0 +1,3 @@
+Sand Roomba costs $150 once in the shop. Crawls the sand, collects 3 scraps and ejects one 0.5x payout pellet. Scraps sink, cap at 80; fish leave scraps with 50% probability after eating, and uneaten landed food turns to scraps after 20 seconds. Fish do not collide with maintenance objects. Maintenance pauses and freezes/hides while visiting. Host maintenance runs normally; guests do not currently see its sprites.
+
+Offline estimate requires ownership, uses owned saved fish only, half-value pellets at at most one per fish per minute, bounded by hunger, capped at 8 hours. Timestamp and credit are saved immediately after load. Mess and in-progress scrap collection are transient; ownership persists.

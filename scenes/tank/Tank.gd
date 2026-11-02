@@ -14,6 +14,20 @@ func _ready() -> void:
 		fish.name = "Goldy"
 		fish.position = Vector2(150, 120)
 		$Fishes.add_child(fish)
+	ensure_roomba()
+
+func ensure_roomba() -> void:
+	if GameState.upgrades.get("roomba", false) and not $Maintenance.has_node("Roomba"):
+		$Maintenance.add_child(preload("res://scenes/feeder/Roomba.tscn").instantiate())
+
+func add_mess(point: Vector2) -> void:
+	if Net.visiting() or $Maintenance/Mess.get_child_count() >= 80:
+		return
+	var mess := Sprite2D.new()
+	mess.set_script(preload("res://scenes/feeder/Mess.gd"))
+	mess.position = point.clamp(bounds.position, bounds.end)
+	mess.floor_y = bounds.end.y
+	$Maintenance/Mess.add_child(mess)
 
 func floor_at(x: float, from_y: float) -> float:
 	var top: float = navigator.decor_top(x)

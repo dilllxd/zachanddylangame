@@ -2,6 +2,8 @@
 extends Node
 
 var money: int = 0
+var upgrades: Dictionary = {}
+var offline_earned := 0
 var tank_id: String = ""
 var gift_outbox: Dictionary = {}
 var gift_receipts: Dictionary = {}

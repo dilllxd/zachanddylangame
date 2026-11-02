@@ -2,6 +2,8 @@ extends Control
 
 var catalog: Array[FishData] = []
 var _buttons: Array[Button] = []
+var _roomba_button: Button
+var _roomba := preload("res://data/upgrades/roomba.tres")
 @onready var panel: PanelContainer = $Panel
 @onready var rows: VBoxContainer = $Panel/Margin/Content/Scroll/Rows
 
@@ -18,6 +20,16 @@ func _ready() -> void:
 	catalog.sort_custom(func(a: FishData, b: FishData) -> bool: return a.price < b.price)
 	for data in catalog:
 		_add_row(data)
+	var heading := Label.new()
+	heading.text = "Upgrades"
+	rows.add_child(heading)
+	var detail := Label.new()
+	detail.text = "Sand Roomba · $150\n3 scraps = half-value food\nOffline earnings, up to 8 hours"
+	rows.add_child(detail)
+	_roomba_button = Button.new()
+	_roomba_button.custom_minimum_size.y = 44
+	_roomba_button.pressed.connect(_buy_roomba)
+	rows.add_child(_roomba_button)
 	_update_affordability(GameState.money)
 
 func _process(_delta: float) -> void:
@@ -51,7 +63,20 @@ func _add_row(data: FishData) -> void:
 	rows.add_child(row)
 	_buttons.append(buy)
 
+func _buy_roomba() -> void:
+	if get_tree().paused or Net.visiting() or GameState.upgrades.get("roomba", false):
+		return
+	if GameState.spend(_roomba.cost):
+		GameState.upgrades["roomba"] = true
+		get_tree().get_first_node_in_group("tank").ensure_roomba()
+		SaveManager.save_game()
+		_update_affordability(GameState.money)
+
 func _update_affordability(total: int) -> void:
+	if is_instance_valid(_roomba_button):
+		var owned: bool = GameState.upgrades.get("roomba", false)
+		_roomba_button.text = "Owned" if owned else "Buy Roomba"
+		_roomba_button.disabled = owned or total < _roomba.cost
 	for i in catalog.size():
 		_buttons[i].disabled = total < catalog[i].price
 
