@@ -8,6 +8,7 @@ func _enter_tree() -> void:
 	add_to_group("tank")
 
 func _ready() -> void:
+	Events.fish_bought.connect(_on_fish_bought)
 	if not SaveManager.load_tank(self):
 		var fish := preload("res://scenes/fish/Fish.tscn").instantiate()
 		fish.name = "Goldy"
@@ -37,3 +38,11 @@ func drop_food(p: Vector2, food: FoodData = null, payout_mult: float = 1.0) -> v
 	pellet.floor_y = floor_at(p.x, p.y)
 	$Food.add_child(pellet)
 	Events.food_dropped.emit(food, p)
+
+
+func _on_fish_bought(data: FishData) -> void:
+	var fish := preload("res://scenes/fish/Fish.tscn").instantiate()
+	fish.data = data
+	fish.position = navigator.random_open_point()
+	$Fishes.add_child(fish)
+	SaveManager.save_game()

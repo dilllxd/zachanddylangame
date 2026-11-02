@@ -1,3 +1,5 @@
 # data/fish
-FishData.gd defines a fish type. Each .tres here is one buyable species (goldfish.tres = Goldy).
-Balance values (price, income, hunger) live here so you can tweak without touching code.
+FishData.gd defines species. Add a .tres in this folder to include it in the shop automatically.
+Goldy costs $25 and pays $5 per pellet; Bluefin costs $60 and pays $10; Rosie costs $300 and pays $25.
+The starting Goldy is free. All use 0.02 fullness loss/sec and 0.25 nutrition/pellet, roughly one pellet per 12.5 seconds once settled. Bluefin takes roughly 2-3 minutes with Goldy; Rosie is a longer goal, accelerated by more fish.
+Prices, payouts, hunger and sprites belong in resources, not UI code.
