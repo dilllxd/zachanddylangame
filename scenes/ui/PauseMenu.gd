@@ -3,6 +3,16 @@ extends Control
 func _ready() -> void:
 	theme = Cozy.THEME
 	Cozy.button_motion(self)
+	var plate := Panel.new()
+	plate.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	plate.offset_left = -28
+	plate.offset_top = -24
+	plate.offset_right = 28
+	plate.offset_bottom = 24
+	plate.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	plate.add_theme_stylebox_override("panel", Cozy.THEME.get_stylebox("panel","PanelContainer"))
+	$Center/Menu.add_child(plate)
+	$Center/Menu.move_child(plate,0)
 	hide()
 
 func _unhandled_input(event: InputEvent) -> void:

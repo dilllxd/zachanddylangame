@@ -1,6 +1,6 @@
 [gd_resource type="Theme" load_steps=9 format=3]
 
-[ext_resource type="FontFile" path="res://assets/fonts/Nunito.ttf" id="font"]
+[ext_resource type="FontFile" path="res://assets/fonts/NunitoRounded.tres" id="font"]
 
 [sub_resource type="StyleBoxFlat" id="panel"]
 bg_color = Color(0.045,0.12,0.15,0.98)
