@@ -2,6 +2,7 @@ import { createServer } from 'node:http';
 import { randomBytes, randomUUID } from 'node:crypto';
 import { performance } from 'node:perf_hooks';
 import WebSocket, { WebSocketServer } from 'ws';
+import { Accounts, fail } from './accounts.mjs';
 
 const MAX_BYTES = 64 * 1024;
 const MAX_ROOMS = 128;
@@ -9,9 +10,71 @@ const MAX_CLIENTS = MAX_ROOMS * 9;
 const rooms = new Map();
 const ips = new Map();
 const object = value => value !== null && typeof value === 'object' && !Array.isArray(value);
-const http = createServer((req, res) => {
-  res.writeHead(req.url === '/health' ? 200 : 404, { 'content-type': 'application/json' });
-  res.end(JSON.stringify(req.url === '/health' ? { ok: true } : { error: 'not_found' }));
+const accounts = new Accounts(process.env.DB_PATH || '/data/accounts.sqlite');
+const origin = process.env.PUBLIC_ORIGIN || 'https://fish.40-160-53-64.sslip.io';
+const allowedOrigin = req => !req.headers.origin || req.headers.origin === origin;
+const limits = new Map();
+let authActive=0;
+function rate(key, limit, window=600000) {
+  const now=Date.now();
+  const bucket=limits.get(key);
+  if (!bucket || bucket.until < now) { limits.set(key,{count:1,until:now+window}); return; }
+  if (++bucket.count > limit) fail('rate_limit',429);
+}
+const cleanup=setInterval(()=>{for(const [k,v] of limits) if(v.until<Date.now()) limits.delete(k)},60000);
+cleanup.unref();
+const clientIp = req => process.env.TRUST_PROXY === '1' ? (req.headers['x-real-ip'] || req.socket.remoteAddress) : req.socket.remoteAddress;
+async function body(req) {
+  if (!String(req.headers['content-type'] || '').toLowerCase().startsWith('application/json')) fail('json_required',415);
+  const chunks=[]; let bytes=0;
+  for await (const chunk of req) { bytes+=chunk.length; if(bytes>1024*1024) fail('body_too_large',413); chunks.push(chunk); }
+  try { const v=JSON.parse(Buffer.concat(chunks).toString()); if(!object(v)) fail('bad_json'); return v; }
+  catch { fail('bad_json'); }
+}
+function notifyGift(donor,result,transferId) {
+  if(result.duplicate) return;
+  for(const peer of wss.clients) {
+    if(peer.user?.id === result.recipient && peer.role==='host')
+      send(peer,{op:'gift_received',fish:result.fish,transfer_id:transferId,save:result.recipientSave});
+  }
+}
+const http = createServer(async (req, res) => {
+  res.setHeader('content-type','application/json');
+  res.setHeader('cache-control','no-store');
+  res.setHeader('x-content-type-options','nosniff');
+  const reply=(status,value)=>{res.writeHead(status);res.end(JSON.stringify(value))};
+  try {
+    if(!allowedOrigin(req)) fail('origin_forbidden',403);
+    const path=new URL(req.url,'http://localhost').pathname;
+    if(path==='/health') return reply(200,{ok:true});
+    if(!path.startsWith('/api/')) return reply(404,{error:'not_found'});
+    rate('http:'+clientIp(req),600,60000);
+    if(req.method==='POST' && (path==='/api/signup'||path==='/api/login')) {
+      const data=await body(req);
+      rate('auth-ip:'+clientIp(req),30);
+      rate('auth-name:'+String(data.username).toLowerCase(),20);
+      if(authActive>=4) fail('auth_busy',429);
+      authActive++;
+      try {
+        const value=path==='/api/signup' ? await accounts.signup(data.username,data.password,data.save) : await accounts.login(data.username,data.password);
+        return reply(200,value);
+      } finally { authActive--; }
+    }
+    const user=accounts.authenticate(String(req.headers.authorization||'').replace(/^Bearer /,''));
+    if(req.method==='GET' && path==='/api/me') return reply(200,{username:user.username});
+    if(req.method==='GET' && path==='/api/save') return reply(200,{save:accounts.save(user.id)});
+    if(req.method==='PUT' && path==='/api/save') {
+      const data=await body(req);
+      return reply(200,{save:accounts.upload(user.id,data.save)});
+    }
+    if(req.method==='POST' && path==='/api/gift') {
+      const data=await body(req);
+      const result=accounts.gift(user.id,data.to,data.fish_id,data.transfer_id);
+      notifyGift(user.id,result,data.transfer_id);
+      return reply(200,{save:result.save});
+    }
+    reply(404,{error:'not_found'});
+  } catch(e) { if(!e.status) console.error('http error',e); reply(e.status||500,{error:e.status?e.message:'internal_error'}); }
 });
 http.headersTimeout = 5000;
 http.requestTimeout = 5000;
@@ -39,15 +102,15 @@ const cleanCount = value => Number.isInteger(value) ? Math.max(0, Math.min(10000
 const error = (ws, code) => send(ws, { op: 'error', code });
 http.on('upgrade', (req, socket, head) => {
   socket.on('error', () => {});
-  const ip = req.socket.remoteAddress;
-  if (req.url !== '/' || wss.clients.size >= MAX_CLIENTS || (ips.get(ip) || 0) >= 64) {
+  const ip = clientIp(req);
+  if (!allowedOrigin(req) || !['/','/relay'].includes(new URL(req.url, 'http://localhost').pathname) || wss.clients.size >= MAX_CLIENTS || (ips.get(ip) || 0) >= 64) {
     socket.end('HTTP/1.1 503 Service Unavailable\r\nConnection: close\r\n\r\n');
     return;
   }
   wss.handleUpgrade(req, socket, head, ws => wss.emit('connection', ws, req));
 });
 wss.on('connection', (ws, req) => {
-  const ip = req.socket.remoteAddress;
+  const ip = clientIp(req);
   ips.set(ip, (ips.get(ip) || 0) + 1);
   ws.alive = true;
   ws.role = null;
@@ -67,6 +130,22 @@ wss.on('connection', (ws, req) => {
     let msg;
     try { msg = JSON.parse(raw.toString()); } catch { return error(ws, 'bad_json'); }
     if (!object(msg) || typeof msg.op !== 'string') return error(ws, 'bad_message');
+    let user;
+    try {
+      user=accounts.authenticate(msg.token);
+      if(ws.user && ws.user.id!==user.id) return error(ws,'identity_changed');
+      ws.user=user;
+    } catch { return error(ws,'unauthorized'); }
+    if(msg.op==='gift') {
+      if(ws.role!=='visitor' || !ws.room) return error(ws,'not_visiting');
+      try {
+        if (msg.fish_id !== ws.fishId) return error(ws,'fish_not_visiting');
+        const result=accounts.gift(user.id,ws.room.host.user.username,msg.fish_id,msg.transfer_id);
+        notifyGift(user.id,result,msg.transfer_id);
+        send(ws,{op:'gift_sent',fish_id:msg.fish_id,transfer_id:msg.transfer_id,save:result.save});
+      } catch(e) { error(ws,e.status?e.message:'internal_error'); }
+      return;
+    }
     if (msg.op === 'list') {
       clearTimeout(handshake);
       return send(ws, { op: 'rooms', rooms: [...rooms.values()].filter(r => r.host.readyState === WebSocket.OPEN).map(r => ({
@@ -78,7 +157,7 @@ wss.on('connection', (ws, req) => {
       if (rooms.size >= MAX_ROOMS) return error(ws, 'server_full');
       let code;
       do { code = randomBytes(6).toString('hex').toUpperCase(); } while (rooms.has(code));
-      const room = { code, host: ws, visitors: new Map(), name: cleanName(msg.name), fishCount: cleanCount(msg.fish_count) };
+      const room = { code, host: ws, visitors: new Map(), name: user.username, fishCount: accounts.save(user.id).fish.length };
       rooms.set(code, room);
       ws.role = 'host';
       ws.room = room;
@@ -91,15 +170,12 @@ wss.on('connection', (ws, req) => {
       const room = rooms.get(msg.code.toUpperCase());
       if (!room || room.host.readyState !== WebSocket.OPEN) return error(ws, 'room_not_found');
       if (room.visitors.size >= 8) return error(ws, 'room_full');
-      if (typeof msg.name !== 'string' || !object(msg.fish) ||
-          typeof msg.fish.data !== 'string' || !msg.fish.data.length || msg.fish.data.length > 256 ||
-          !Number.isFinite(msg.fish.fullness) || msg.fish.fullness < 0 || msg.fish.fullness > 1) {
-        return error(ws, 'bad_join');
-      }
-      const name = Array.from(msg.name.replace(/[\x00-\x1f\x7f]/g, '').trim()).slice(0, 32).join('') || 'Visitor';
-      const tier = msg.fish.tier ?? 0;
-      if (!Number.isInteger(tier) || tier < 0 || tier > 3) return error(ws, 'bad_join');
-      const fish = { data: msg.fish.data, fullness: msg.fish.fullness, tier };
+      if(room.host.user.id === user.id) return error(ws,'cannot_visit_self');
+      const fishId=msg.fish_id ?? msg.fish?.id;
+      const fish=accounts.save(user.id).fish.find(f=>f.id===fishId);
+      if(!fish) return error(ws,'fish_not_owned');
+      ws.fishId=fishId;
+      const name=user.username;
       ws.id = randomUUID();
       ws.role = 'visitor';
       ws.room = room;
@@ -111,10 +187,11 @@ wss.on('connection', (ws, req) => {
     if (!ws.role) return error(ws, 'not_in_room');
     if ((msg.op !== 'send' && msg.op !== 'broadcast') || !object(msg.body)) return error(ws, 'bad_message');
     const room = ws.room;
+    if(['gift','gift_ack','gift_received','gift_sent','arrival','joined','hosted','message','closed','departure','rooms'].includes(msg.body.op)) return error(ws,'reserved_operation');
     if (ws.role === 'host') {
       if (msg.op === 'broadcast') {
         if (msg.body.op === 'snapshot' && Array.isArray(msg.body.fish)) {
-          room.fishCount = cleanCount(msg.body.fish.filter(f => object(f) && !f.name).length);
+          room.fishCount = accounts.save(user.id).fish.length;
         }
         for (const visitor of room.visitors.values()) send(visitor, msg.body);
         return;

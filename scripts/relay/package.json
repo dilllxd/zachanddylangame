@@ -8,6 +8,7 @@
     "test": "node test.mjs"
   },
   "dependencies": {
+    "bcryptjs": "3.0.3",
     "ws": "8.22.0"
   }
 }

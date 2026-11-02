@@ -19,12 +19,19 @@ config/features=PackedStringArray("4.7", "GL Compatibility")
 Events="*uid://uib413m7hsib"
 GameState="*uid://cc610u18gtf2m"
 SaveManager="*uid://m3rmubi2ii5q"
-
 Net="*res://autoload/Net.gd"
+Account="*res://autoload/Account.gd"
+
+[display]
+
+window/size/viewport_width=1152
+window/size/viewport_height=648
+window/stretch/mode="canvas_items"
+window/stretch/aspect="expand"
 
 [editor_plugins]
 
-enabled=PackedStringArray("res://addons/backstitch/plugin.cfg")
+enabled=PackedStringArray()
 
 [input]
 
@@ -37,11 +44,4 @@ pause={
 [rendering]
 
 renderer/rendering_method="gl_compatibility"
-environment/defaults/default_clear_color=Color(0.025,0.07,0.09,1)
-
-[display]
-
-window/size/viewport_width=1152
-window/size/viewport_height=648
-window/stretch/mode="canvas_items"
-window/stretch/aspect="expand"
+environment/defaults/default_clear_color=Color(0.025, 0.07, 0.09, 1)

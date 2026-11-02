@@ -32,19 +32,35 @@ func tank() -> Node:
 func visiting() -> bool:
 	return mode == "visitor"
 
-func set_player_name(value: String) -> void:
-	GameState.player_name = value.strip_edges().left(24)
-	if GameState.player_name.is_empty():
-		GameState.player_name = "Player"
-	SaveManager.save_game()
+func set_player_name(_value: String) -> void:
+	GameState.player_name = Account.username
+
+func owned_count() -> int:
+	var count := 0
+	if tank() != null:
+		for fish in tank().get_node("Fishes").get_children():
+			if not fish.has_meta("visitor") and not fish.is_queued_for_deletion():
+				count += 1
+	return count
+
+func can_gift() -> bool:
+	return Account.is_logged_in() and visiting() and is_instance_valid(_selected) and owned_count() >= 2 and not _gift_wait
 
 func open_tank() -> void:
+	if not Account.is_logged_in():
+		status = "Log in to visit tanks."
+		changed.emit()
+		return
 	if mode.is_empty() and tank() != null:
 		SaveManager.save_game()
 		_connect({"op": "host", "name": GameState.player_name,
 			"fish_count": tank().get_node("Fishes").get_child_count()}, "hosting")
 
 func visit(room: String, fish: Node) -> void:
+	if not Account.is_logged_in():
+		return
+	SaveManager.save_game()
+	await Account.flush_now()
 	if not mode.is_empty() or tank() == null:
 		return
 	var pending := not GameState.gift_outbox.is_empty()
@@ -53,11 +69,12 @@ func visit(room: String, fish: Node) -> void:
 	_selected = fish
 	code = room.strip_edges().to_upper()
 	_connect({"op": "join", "code": code, "name": GameState.player_name,
-		"fish": {"data": GameState.gift_outbox.data if pending else fish.data.resource_path,
+		"fish": {"id": fish.fish_id, "data": GameState.gift_outbox.data if pending else fish.data.resource_path,
 		"fullness": 1.0 if pending else fish.fullness,
 		"tier": GameState.gift_outbox.get("tier", 0) if pending else fish.tier}}, "joining")
 
 func _connect(request: Dictionary, next_mode: String) -> void:
+	await Account.flush_now()
 	socket = WebSocketPeer.new()
 	_request = request
 	mode = next_mode
@@ -69,6 +86,7 @@ func _connect(request: Dictionary, next_mode: String) -> void:
 
 func _send(message: Dictionary) -> void:
 	if socket != null and socket.get_ready_state() == WebSocketPeer.STATE_OPEN:
+		message["token"] = Account.token
 		socket.send_text(JSON.stringify(message))
 
 func _to_guest(id: String, body: Dictionary) -> void:
@@ -105,11 +123,6 @@ func _process(delta: float) -> void:
 		if _snapshot_time >= 0.1:
 			_snapshot_time = 0.0
 			_send({"op": "broadcast", "body": _snapshot()})
-	if visiting() and not GameState.gift_outbox.is_empty() and str(GameState.gift_outbox.get("host", "")) == _host_id:
-		_retry_time += delta
-		if _retry_time >= 1.0:
-			_retry_time = 0.0
-			_to_host({"op": "gift", "transfer": GameState.gift_outbox})
 	if visiting() and is_instance_valid(_view) and not get_tree().paused:
 		for visual in _visuals.values():
 			visual.position = visual.position.lerp(visual.get_meta("target"), minf(delta * 15.0, 1.0))
@@ -140,10 +153,17 @@ func _receive(m: Dictionary) -> void:
 			if visiting() and m.get("amount") is float and is_finite(m.amount) and m.amount >= 0 and m.amount <= 10000:
 				GameState.add_money(int(m.amount))
 				SaveManager.save_game()
-		"gift_ack":
-			if visiting() and str(m.get("id", "")) == str(GameState.gift_outbox.get("id", "!")):
-				GameState.gift_outbox = {}
+		"gift_received":
+			if mode == "host" and m.get("fish") is Dictionary:
+				_accept_cloud_gift(m)
+		"gift_sent":
+			if visiting() and is_instance_valid(_selected) and str(m.get("fish_id", "")) == _selected.fish_id:
+				_selected.get_parent().remove_child(_selected)
+				_selected.queue_free()
+				_selected = null
 				_gift_wait = false
+				if m.get("save") is Dictionary:
+					SaveManager.write_cache(m.save)
 				SaveManager.save_game()
 				status = "Fish gifted!"
 		"closed", "error":
@@ -166,6 +186,7 @@ func _arrival(m: Dictionary) -> void:
 	if data == null or not FishTier.valid(m.fish.get("tier", 0)):
 		return
 	var fish := FISH.instantiate()
+	fish.fish_id = str(m.fish.get("id", fish.fish_id))
 	fish.tier = int(m.fish.get("tier", 0))
 	fish.data = data
 	fish.set_meta("visitor", id)
@@ -205,36 +226,6 @@ func _host_message(id: String, body: Dictionary) -> void:
 				return
 			_guests[id].last_food = Time.get_ticks_msec()
 			tank().drop_food(point, null, 1.0, id)
-		"gift":
-			var transfer: Variant = body.get("transfer")
-			if not transfer is Dictionary or str(transfer.get("host", "")) != GameState.tank_id:
-				return
-			var transaction := str(transfer.get("id", ""))
-			if transaction.length() != 32:
-				return
-			if GameState.gift_receipts.has(transaction):
-				_clear_guest_fish(id)
-				_to_guest(id, {"op": "gift_ack", "id": transaction})
-				return
-			var data := fish_data(transfer.get("data"))
-			if data == null or not FishTier.valid(transfer.get("tier", 0)):
-				return
-			var fish := FISH.instantiate()
-			fish.tier = int(transfer.get("tier", 0))
-			fish.data = data
-			fish.position = tank().navigator.random_open_point()
-			tank().get_node("Fishes").add_child(fish)
-			GameState.gift_receipts[transaction] = true
-			SaveManager.save_game()
-			if not SaveManager.last_save_ok:
-				GameState.gift_receipts.erase(transaction)
-				fish.get_parent().remove_child(fish)
-				fish.queue_free()
-				return
-			# The visiting copy disappears; the new permanent fish belongs to the host.
-			_clear_guest_fish(id)
-			_to_guest(id, {"op": "gift_ack", "id": transaction})
-
 func _clear_guest_fish(id: String) -> void:
 	var guest: Node = _guests[id].fish
 	if is_instance_valid(guest) and guest.has_meta("visitor"):
@@ -255,28 +246,41 @@ func request_food(point: Vector2) -> void:
 	_to_host({"op": "food", "position": [point.x, point.y]})
 
 func gift() -> void:
-	if not visiting() or not is_instance_valid(_selected) or _host_id.is_empty() or not GameState.gift_outbox.is_empty():
-		return
-	var fish: Node = _selected
-	var parent := fish.get_parent()
-	var transfer := {"id": Crypto.new().generate_random_bytes(16).hex_encode(),
-		"host": _host_id, "data": fish.data.resource_path, "tier": fish.tier}
-	# Durable outbox: remove locally and save BEFORE asking host to commit.
-	parent.remove_child(fish)
-	GameState.gift_outbox = transfer
-	SaveManager.save_game()
-	if not SaveManager.last_save_ok:
-		GameState.gift_outbox = {}
-		parent.add_child(fish)
-		status = "Could not save. Gift cancelled."
+	if not can_gift():
+		status = "Keep at least one fish in your tank."
 		changed.emit()
 		return
-	fish.queue_free()
-	_selected = null
+	SaveManager.save_game()
+	await Account.flush_now()
+	if not can_gift():
+		return
 	_gift_wait = true
-	_to_host({"op": "gift", "transfer": transfer})
+	_send({"op": "gift", "fish_id": _selected.fish_id,
+		"transfer_id": Crypto.new().generate_random_bytes(16).hex_encode()})
 	status = "Sending gift..."
 	changed.emit()
+
+func _accept_cloud_gift(message: Dictionary) -> void:
+	var entry: Dictionary = message.fish
+	if message.get("save") is Dictionary:
+		SaveManager.write_cache(message.save)
+	var data := fish_data(entry.get("data"))
+	if data == null or not FishTier.valid(entry.get("tier", 0)):
+		return
+	for existing in tank().get_node("Fishes").get_children():
+		if not existing.has_meta("visitor") and existing.fish_id == str(entry.get("id", "")):
+			return
+	var fish := FISH.instantiate()
+	fish.fish_id = str(entry.get("id", fish.fish_id))
+	fish.data = data
+	fish.tier = int(entry.get("tier", 0))
+	fish.position = tank().navigator.random_open_point()
+	tank().get_node("Fishes").add_child(fish)
+	for id in _guests.keys():
+		if is_instance_valid(_guests[id].fish) and _guests[id].fish.fish_id == fish.fish_id:
+			_clear_guest_fish(id)
+	SaveManager.save_game()
+	status = "A new fish joined your tank!"
 
 func _snapshot() -> Dictionary:
 	var fishes: Array = []
@@ -373,7 +377,7 @@ func browse_rooms(active: bool) -> void:
 	_poll_rooms(0.0)
 
 func _poll_rooms(delta: float) -> void:
-	if not browsing:
+	if not browsing or not Account.is_logged_in():
 		return
 	if _browser == null:
 		_browser = WebSocketPeer.new()
@@ -385,7 +389,7 @@ func _poll_rooms(delta: float) -> void:
 	if _browser.get_ready_state() == WebSocketPeer.STATE_OPEN:
 		if _list_elapsed >= 2.0:
 			_list_elapsed = 0.0
-			_browser.send_text(JSON.stringify({"op": "list"}))
+			_browser.send_text(JSON.stringify({"op": "list", "token": Account.token}))
 		while _browser.get_available_packet_count() > 0:
 			var reply: Variant = JSON.parse_string(_browser.get_packet().get_string_from_utf8())
 			if reply is Dictionary and reply.get("op") == "rooms" and reply.get("rooms") is Array:

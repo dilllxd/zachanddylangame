@@ -7,6 +7,7 @@ extends Node2D
 @export var turn_rate: float = 5.0       # higher = snappier turns
 @export var retarget_interval: float = 0.25
 
+var fish_id: String = Crypto.new().generate_random_bytes(16).hex_encode()
 var tank: Node2D
 @onready var hunger: Node = $Hunger
 @onready var movement: Node = $Movement

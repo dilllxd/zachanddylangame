@@ -3,8 +3,14 @@ services:
     build: .
     restart: unless-stopped
     ports:
-      - "42067:3000"
+      - "127.0.0.1:42067:3000"
     read_only: true
+    environment:
+      DB_PATH: /data/accounts.sqlite
+      PUBLIC_ORIGIN: https://fish.40-160-53-64.sslip.io
+      TRUST_PROXY: "1"
+    volumes:
+      - accounts:/data
     cap_drop:
       - ALL
     security_opt:
@@ -22,3 +28,6 @@ services:
       options:
         max-size: "5m"
         max-file: "2"
+
+volumes:
+  accounts:

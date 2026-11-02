@@ -1,11 +1,12 @@
 extends Node
 
-const SAVE_PATH := "user://save.json"
+var SAVE_PATH: String = "user://save.json"
 const FISH_SCENE := preload("res://scenes/fish/Fish.tscn")
 
 # Tests can disable all disk access before instantiating Main.
 var enabled := true
 var last_save_ok := false
+var server_revision := 0
 var _loading := false
 var _timer: Timer
 
@@ -45,6 +46,7 @@ func save_game() -> void:
 			push_warning("Cannot save fish without a FishData resource path.")
 			return
 		fish_records.append({
+			"id": fish.fish_id,
 			"data": fish.data.resource_path,
 			"tier": fish.tier,
 			"fullness": fish.fullness,
@@ -54,6 +56,7 @@ func save_game() -> void:
 		GameState.tank_id = Crypto.new().generate_random_bytes(16).hex_encode()
 	var record := {
 		"version": 1,
+		"server_revision": server_revision,
 		"tank_id": GameState.tank_id,
 		"gift_outbox": GameState.gift_outbox,
 		"gift_receipts": GameState.gift_receipts,
@@ -76,6 +79,8 @@ func save_game() -> void:
 		push_warning("Could not finish saving game.")
 		return
 	last_save_ok = true
+	if has_node("/root/Account"):
+		Account.queue_save(record)
 
 # Called by Tank once its children are ready. False means use default Goldy.
 func load_tank(tank: Node2D) -> bool:
@@ -110,6 +115,7 @@ func load_tank(tank: Node2D) -> bool:
 		if not FishTier.valid(entry.get("tier", 0)):
 			return false
 		resources.append(data)
+	server_revision = int(record.get("server_revision", 0))
 	_loading = true
 	GameState.tank_id = str(record.get("tank_id", ""))
 	GameState.gift_outbox = record.get("gift_outbox", {}) if record.get("gift_outbox", {}) is Dictionary else {}
@@ -122,6 +128,7 @@ func load_tank(tank: Node2D) -> bool:
 	for i in record.fish.size():
 		var entry: Dictionary = record.fish[i]
 		var fish := FISH_SCENE.instantiate()
+		fish.fish_id = str(entry.get("id", fish.fish_id))
 		fish.data = resources[i]
 		fish.tier = int(entry.get("tier", 0))
 		fish.position = Vector2(entry.position[0], entry.position[1]).clamp(tank.bounds.position, tank.bounds.end)
@@ -148,3 +155,19 @@ func offline_credit(record: Dictionary, resources: Array[FishData]) -> int:
 
 func _number(value: Variant) -> bool:
 	return (value is int or value is float) and is_finite(float(value))
+
+func cached_record() -> Dictionary:
+	if not FileAccess.file_exists(SAVE_PATH):
+		return {}
+	var parsed: Variant = JSON.parse_string(FileAccess.get_file_as_string(SAVE_PATH))
+	return parsed if parsed is Dictionary else {}
+
+func write_cache(record: Dictionary) -> bool:
+	server_revision = int(record.get("server_revision", server_revision))
+	var file := FileAccess.open(SAVE_PATH + ".tmp", FileAccess.WRITE)
+	if file == null:
+		return false
+	file.store_string(JSON.stringify(record))
+	file.flush()
+	file.close()
+	return DirAccess.rename_absolute(SAVE_PATH + ".tmp", SAVE_PATH) == OK

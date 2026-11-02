@@ -40,10 +40,8 @@ func _ready() -> void:
 	_button(box, "Back to tank", func(): panel.hide(); Net.browse_rooms(false))
 	box.add_child(title)
 	name_edit = LineEdit.new()
-	name_edit.placeholder_text = "Your name"
-	name_edit.max_length = 24
-	name_edit.text = GameState.player_name
-	name_edit.text_submitted.connect(func(value: String): Net.set_player_name(value))
+	name_edit.editable = false
+	name_edit.text = Account.username
 	box.add_child(name_edit)
 	host_button = _button(box, "Open tank", _host)
 	var hint := Label.new()
@@ -112,15 +110,12 @@ func _toggle() -> void:
 		_refresh()
 
 func _host() -> void:
-	Net.set_player_name(name_edit.text)
 	Net.open_tank()
 
 func _join() -> void:
 	if not GameState.gift_outbox.is_empty():
-		Net.set_player_name(name_edit.text)
 		Net.visit(selected_room, null)
 	elif choices.selected >= 0 and choices.selected < owned.size():
-		Net.set_player_name(name_edit.text)
 		Net.visit(selected_room, owned[choices.selected])
 
 func _refresh() -> void:
@@ -130,7 +125,11 @@ func _refresh() -> void:
 	host_button.disabled = not Net.mode.is_empty()
 	join_button.disabled = selected_room.is_empty() or not Net.mode.is_empty() or (owned.is_empty() and GameState.gift_outbox.is_empty())
 	gift_button.visible = Net.visiting()
-	gift_button.disabled = Net._selected == null or not GameState.gift_outbox.is_empty()
+	var can_gift: bool = Net.can_gift()
+	gift_button.disabled = not can_gift or Net._selected == null or not GameState.gift_outbox.is_empty()
+	gift_button.tooltip_text = "" if can_gift else "Keep at least one fish in your tank."
+	if Net.visiting() and Net.owned_count() < 2:
+		state.text += "\nKeep at least one fish in your tank."
 	leave_button.visible = not Net.mode.is_empty()
 
 

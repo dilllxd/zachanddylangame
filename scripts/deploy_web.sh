@@ -13,6 +13,6 @@ trap 'rm -rf "$BUILD"' EXIT
 "$GODOT" --headless --path "$PROJECT" --import
 "$GODOT" --headless --path "$PROJECT" --export-release Web "$BUILD/index.html"
 # Every asset is revalidated, so deploying never strands players on stale scripts.
-rsync -az --delete --chmod=D755,F644 -e "ssh -i $SSH_KEY" "$BUILD/" "$DEPLOY_HOST:$DEPLOY_DIR/www/"
+rsync -az --chmod=D755,F644 --delete -e "ssh -i $SSH_KEY" "$BUILD/" "$DEPLOY_HOST:$DEPLOY_DIR/www/"
 curl --fail --silent --show-error "https://fish.40-160-53-64.sslip.io/health"
 printf '\nPublished https://fish.40-160-53-64.sslip.io/\n'
