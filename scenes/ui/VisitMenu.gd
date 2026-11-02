@@ -15,19 +15,27 @@ var confirmation: ConfirmationDialog
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
+	theme = Cozy.THEME
 	var toggle := Button.new()
 	toggle.text = "Visit tanks"
 	toggle.position = Vector2(350, 20)
 	toggle.pressed.connect(_toggle)
-	add_child(toggle)
+	# Entry point lives in the shared dock.
+	toggle.queue_free()
 	panel = PanelContainer.new()
-	panel.position = Vector2(350, 66)
-	panel.custom_minimum_size = Vector2(320, 0)
+	panel.set_anchors_and_offsets_preset(Control.PRESET_CENTER)
+	panel.offset_left = -226
+	panel.offset_right = 226
+	panel.offset_top = -240
+	panel.offset_bottom = 240
+	panel.custom_minimum_size = Vector2(412, 0)
 	var box := VBoxContainer.new()
 	box.add_theme_constant_override("separation", 10)
 	panel.add_child(box)
 	var title := Label.new()
-	title.text = "A LITTLE COMPANY"
+	title.text = "A little company"
+	title.add_theme_font_size_override("font_size",28)
+	_button(box, "Back to tank", func(): panel.hide())
 	box.add_child(title)
 	name_edit = LineEdit.new()
 	name_edit.placeholder_text = "Your name"
@@ -60,6 +68,7 @@ func _ready() -> void:
 	add_child(confirmation)
 	Net.changed.connect(_refresh)
 	_refresh()
+	Cozy.button_motion(self)
 
 func _button(box: VBoxContainer, text: String, action: Callable) -> Button:
 	var button := Button.new()

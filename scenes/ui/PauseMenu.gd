@@ -1,6 +1,8 @@
 extends Control
 
 func _ready() -> void:
+	theme = Cozy.THEME
+	Cozy.button_motion(self)
 	hide()
 
 func _unhandled_input(event: InputEvent) -> void:

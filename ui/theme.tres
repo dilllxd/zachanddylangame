@@ -1,0 +1,114 @@
+[gd_resource type="Theme" load_steps=9 format=3]
+
+[ext_resource type="FontFile" path="res://assets/fonts/Nunito.ttf" id="font"]
+
+[sub_resource type="StyleBoxFlat" id="panel"]
+bg_color = Color(0.045,0.12,0.15,0.98)
+content_margin_left = 20.0
+content_margin_top = 12.0
+content_margin_right = 20.0
+content_margin_bottom = 12.0
+corner_radius_top_left = 16
+corner_radius_top_right = 16
+corner_radius_bottom_left = 16
+corner_radius_bottom_right = 16
+border_width_bottom = 2
+border_color = Color(0.22,0.44,0.44,1)
+
+[sub_resource type="StyleBoxFlat" id="normal"]
+bg_color = Color(0.09,0.24,0.27,1)
+content_margin_left = 20.0
+content_margin_top = 12.0
+content_margin_right = 20.0
+content_margin_bottom = 12.0
+corner_radius_top_left = 16
+corner_radius_top_right = 16
+corner_radius_bottom_left = 16
+corner_radius_bottom_right = 16
+border_width_bottom = 2
+border_color = Color(0.22,0.44,0.44,1)
+
+[sub_resource type="StyleBoxFlat" id="hover"]
+bg_color = Color(0.14,0.35,0.36,1)
+content_margin_left = 20.0
+content_margin_top = 12.0
+content_margin_right = 20.0
+content_margin_bottom = 12.0
+corner_radius_top_left = 16
+corner_radius_top_right = 16
+corner_radius_bottom_left = 16
+corner_radius_bottom_right = 16
+border_width_bottom = 2
+border_color = Color(0.22,0.44,0.44,1)
+
+[sub_resource type="StyleBoxFlat" id="pressed"]
+bg_color = Color(0.22,0.44,0.42,1)
+content_margin_left = 20.0
+content_margin_top = 12.0
+content_margin_right = 20.0
+content_margin_bottom = 12.0
+corner_radius_top_left = 16
+corner_radius_top_right = 16
+corner_radius_bottom_left = 16
+corner_radius_bottom_right = 16
+border_width_bottom = 2
+border_color = Color(0.22,0.44,0.44,1)
+
+[sub_resource type="StyleBoxFlat" id="disabled"]
+bg_color = Color(0.07,0.15,0.18,1)
+content_margin_left = 20.0
+content_margin_top = 12.0
+content_margin_right = 20.0
+content_margin_bottom = 12.0
+corner_radius_top_left = 16
+corner_radius_top_right = 16
+corner_radius_bottom_left = 16
+corner_radius_bottom_right = 16
+border_width_bottom = 2
+border_color = Color(0.22,0.44,0.44,1)
+
+[sub_resource type="StyleBoxFlat" id="focus"]
+bg_color = Color(0.13,0.29,0.31,1)
+content_margin_left = 20.0
+content_margin_top = 12.0
+content_margin_right = 20.0
+content_margin_bottom = 12.0
+corner_radius_top_left = 16
+corner_radius_top_right = 16
+corner_radius_bottom_left = 16
+corner_radius_bottom_right = 16
+border_width_bottom = 2
+border_color = Color(0.22,0.44,0.44,1)
+
+[sub_resource type="FontVariation" id="rounded"]
+base_font = ExtResource("font")
+variation_opentype = {"wght": 700.0}
+
+[resource]
+default_font = SubResource("rounded")
+default_font_size = 19
+Label/colors/font_color = Color(0.9,0.96,0.91,1)
+Button/colors/font_disabled_color = Color(0.52,0.69,0.68,1)
+Button/colors/font_color = Color(0.9,0.96,0.91,1)
+LineEdit/colors/font_color = Color(0.9,0.96,0.91,1)
+OptionButton/colors/font_disabled_color = Color(0.52,0.69,0.68,1)
+Button/colors/font_color = Color(0.9,0.96,0.91,1)
+PopupMenu/colors/font_color = Color(0.9,0.96,0.91,1)
+Button/styles/normal = SubResource("normal")
+Button/styles/hover = SubResource("hover")
+Button/styles/pressed = SubResource("pressed")
+Button/styles/disabled = SubResource("disabled")
+Button/styles/focus = SubResource("focus")
+OptionButton/styles/normal = SubResource("normal")
+OptionButton/styles/hover = SubResource("hover")
+OptionButton/styles/pressed = SubResource("pressed")
+OptionButton/styles/disabled = SubResource("disabled")
+OptionButton/styles/focus = SubResource("focus")
+LineEdit/styles/normal = SubResource("normal")
+LineEdit/styles/hover = SubResource("hover")
+LineEdit/styles/pressed = SubResource("pressed")
+LineEdit/styles/disabled = SubResource("disabled")
+LineEdit/styles/focus = SubResource("focus")
+PanelContainer/styles/panel = SubResource("panel")
+VBoxContainer/constants/separation = 12
+HBoxContainer/constants/separation = 12

@@ -24,7 +24,7 @@ Net="*res://autoload/Net.gd"
 
 [editor_plugins]
 
-enabled=PackedStringArray()
+enabled=PackedStringArray("res://addons/backstitch/plugin.cfg")
 
 [input]
 
@@ -37,3 +37,11 @@ pause={
 [rendering]
 
 renderer/rendering_method="gl_compatibility"
+environment/defaults/default_clear_color=Color(0.025,0.07,0.09,1)
+
+[display]
+
+window/size/viewport_width=1152
+window/size/viewport_height=648
+window/stretch/mode="canvas_items"
+window/stretch/aspect="expand"

@@ -5,8 +5,10 @@
 [ext_resource type="PackedScene" path="res://scenes/ui/PauseMenu.tscn" id="3"]
 [ext_resource type="PackedScene" path="res://scenes/ui/Shop.tscn" id="4"]
 [ext_resource type="PackedScene" path="res://scenes/ui/VisitMenu.tscn" id="5"]
+[ext_resource type="Script" path="res://scenes/main/Main.gd" id="layout"]
 
 [node name="Main" type="Node" unique_id=101686412]
+script = ExtResource("layout")
 
 [node name="World" type="Node2D" parent="." unique_id=377169800]
 

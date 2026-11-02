@@ -33,9 +33,9 @@ func grow_patch(offset: float = -1.0) -> Node2D:
 	var along := randf() * perimeter if offset < 0.0 else fposmod(offset, perimeter)
 	var patch := Polygon2D.new()
 	patch.polygon = PackedVector2Array([Vector2(-10,-3),Vector2(-6,-7),Vector2(0,-5),Vector2(5,-8),Vector2(11,-2),Vector2(8,5),Vector2(1,7),Vector2(-8,5)])
-	patch.color = Color(0.25, 0.55, 0.2, 0.55)
+	patch.color = Color(0.42, 0.74, 0.22, 0.82)
 	patch.position = point_at(along)
-	patch.scale = Vector2.ONE * randf_range(0.7, 1.3)
+	patch.scale = Vector2.ONE * randf_range(1.0, 1.65)
 	patch.set_meta("along", along)
 	add_child(patch)
 	return patch

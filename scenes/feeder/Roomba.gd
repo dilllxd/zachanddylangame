@@ -11,6 +11,7 @@ func _ready() -> void:
 	tank = get_parent().get_parent()
 	algae = get_parent().get_node("Algae")
 	texture = preload("res://assets/feeder/roomba.png")
+	scale = Vector2.ONE * 1.55
 	texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
 	along = algae.edge.size.x + algae.edge.size.y + algae.edge.size.x * 0.5
 	position = algae.point_at(along)
