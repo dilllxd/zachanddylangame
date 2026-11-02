@@ -2,7 +2,7 @@ extends Node
 ## Room transport and host-authoritative simulation. No high-level RPC or remote code.
 signal changed
 const FISH := preload("res://scenes/fish/Fish.tscn")
-var relay_url := "ws://40.160.53.64:42067/"
+var relay_url := "wss://fish.40-160-53-64.sslip.io/relay"
 var mode := ""
 var code := ""
 var status := ""
