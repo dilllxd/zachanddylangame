@@ -7,7 +7,7 @@ var floor_y: float = 410.0  # set by Tank on spawn
 ## 1.0 = manual click, autofeeder will drop pellets with a lower multiplier
 var payout_mult: float = 1.0
 var claimed_by: Node = null  # stops every fish piling onto one pellet
-## Uneaten food becomes recyclable mess after resting on the floor.
+## Landed pellets fade during the last three seconds, then disappear.
 @export var lifetime: float = 20.0
 var _rest_time := 0.0
 
@@ -19,8 +19,8 @@ func _process(delta: float) -> void:
 		position.y = min(position.y + sink_speed * delta, floor_y)
 	else:
 		_rest_time += delta
+		modulate.a = clampf((lifetime - _rest_time) / 3.0, 0.0, 1.0)
 		if _rest_time >= lifetime:
-			get_tree().get_first_node_in_group("tank").add_mess(position)
 			eat()
 
 ## where this pellet will be in t seconds (for leading the chase)

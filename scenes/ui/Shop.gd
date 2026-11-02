@@ -27,7 +27,7 @@ func _ready() -> void:
 	heading.text = "Upgrades"
 	rows.add_child(heading)
 	var detail := Label.new()
-	detail.text = "Sand Roomba · $150\n3 scraps = half-value food\nOffline earnings, up to 8 hours"
+	detail.text = "Sand Roomba · $150\nCleans 3 algae = half-value food\nOffline earnings, up to 8 hours"
 	rows.add_child(detail)
 	_roomba_button = Button.new()
 	_roomba_button.custom_minimum_size.y = 44

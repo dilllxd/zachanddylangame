@@ -1,40 +1,47 @@
 extends Sprite2D
-## Three scraps become one recycled, half-value pellet.
+## A slow glass-edge scrubber. Three algae patches become one half-value pellet.
 const PIECES_PER_PELLET := 3
 var collected := 0
 var produced := 0
-var direction := 1.0
 var tank: Node2D
+var algae: Node2D
+var along := 0.0
 var cooldown := 0.0
 func _ready() -> void:
 	tank = get_parent().get_parent()
+	algae = get_parent().get_node("Algae")
 	texture = preload("res://assets/feeder/roomba.png")
 	texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
-	position = Vector2(tank.bounds.get_center().x, tank.bounds.end.y - 8.0)
+	along = algae.edge.size.x + algae.edge.size.y + algae.edge.size.x * 0.5
+	position = algae.point_at(along)
 func _process(delta: float) -> void:
 	cooldown = maxf(0.0, cooldown - delta)
 	var target: Node2D
 	var distance := INF
-	for scrap in get_parent().get_node("Mess").get_children():
-		if scrap.is_queued_for_deletion() or scrap.position.y < scrap.floor_y - 1.0:
+	var travel := 1.0
+	for patch in algae.get_children():
+		if patch.is_queued_for_deletion():
 			continue
-		var d: float = absf(scrap.position.x - position.x)
-		if d < distance:
-			distance = d
-			target = scrap
+		var diff: float = fposmod(float(patch.get_meta("along")) - along + algae.perimeter * 0.5, algae.perimeter) - algae.perimeter * 0.5
+		if absf(diff) < distance:
+			distance = absf(diff)
+			travel = signf(diff)
+			target = patch
 	if is_instance_valid(target):
-		position.x = move_toward(position.x, target.position.x, 55.0 * delta)
-		if absf(position.x - target.position.x) < 9.0 and cooldown <= 0.0:
+		along = fposmod(along + travel * minf(32.0 * delta, distance), algae.perimeter)
+		if distance < 9.0 and cooldown <= 0.0:
 			target.queue_free()
 			collected += 1
 			cooldown = 0.8
 			if collected >= PIECES_PER_PELLET:
 				collected -= PIECES_PER_PELLET
 				produced += 1
-				# Eject above the floor so fish can chase the recycled food.
-				tank.drop_food(Vector2(position.x, position.y - 70.0), null, 0.5)
+				var drop: Vector2 = algae.point_at(along).move_toward(tank.bounds.get_center(), 65.0)
+				tank.drop_food(drop, null, 0.5)
 	else:
-		position.x += direction * 18.0 * delta
-		if position.x <= tank.bounds.position.x + 16.0 or position.x >= tank.bounds.end.x - 16.0:
-			direction *= -1.0
-	position.x = clampf(position.x, tank.bounds.position.x + 16.0, tank.bounds.end.x - 16.0)
+		along = fposmod(along + 16.0 * delta, algae.perimeter)
+	var next: Vector2 = algae.point_at(along)
+	var direction: Vector2 = next - position
+	if direction.length_squared() > 0.001:
+		rotation = direction.angle()
+	position = next

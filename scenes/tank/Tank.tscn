@@ -9,6 +9,7 @@
 [ext_resource type="Texture2D" path="res://assets/tank/seaweed_pink.png" id="8"]
 [ext_resource type="Texture2D" path="res://assets/tank/seaweed_tall.png" id="9"]
 [ext_resource type="Script" path="res://scenes/tank/Navigator.gd" id="10"]
+[ext_resource type="Script" path="res://scenes/feeder/Algae.gd" id="algae"]
 
 [node name="Tank" type="Node2D" unique_id=1340685501]
 script = ExtResource("1")
@@ -110,4 +111,5 @@ script = ExtResource("10")
 
 [node name="Maintenance" type="Node2D" parent="." unique_id=1830282566]
 
-[node name="Mess" type="Node2D" parent="Maintenance" unique_id=1575696160]
+[node name="Algae" type="Node2D" parent="Maintenance" unique_id=1575696160]
+script = ExtResource("algae")
