@@ -1,6 +1,7 @@
 extends Node2D
 
 @export var sink_speed: float = 30.0
+var feeder: String = ""
 var food: FoodData
 var floor_y: float = 410.0  # set by Tank on spawn
 ## 1.0 = manual click, autofeeder will drop pellets with a lower multiplier

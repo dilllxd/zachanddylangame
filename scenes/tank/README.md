@@ -1,3 +1,5 @@
 # scenes/tank
 Tank owns bounds, click feeding and floor height. Navigator handles optional solid-decor paths (currently cosmetic).
 Events.fish_bought spawns the selected FishData at a random open position and saves immediately, including the spent money and new fish. SaveManager restores purchased fish on load.
+
+When visiting, Tank forwards food clicks to Net rather than spawning locally. Optional feeder IDs on pellets preserve tip attribution. The host stays authoritative; visitor fish are temporary and excluded from saves.

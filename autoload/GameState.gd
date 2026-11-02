@@ -2,6 +2,10 @@
 extends Node
 
 var money: int = 0
+var tank_id: String = ""
+var gift_outbox: Dictionary = {}
+var gift_receipts: Dictionary = {}
+var player_name: String = "Player"
 
 func _ready() -> void:
 	Events.fish_fed.connect(_on_fish_fed)

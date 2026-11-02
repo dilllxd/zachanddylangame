@@ -5,6 +5,7 @@ const FISH_SCENE := preload("res://scenes/fish/Fish.tscn")
 
 # Tests can disable all disk access before instantiating Main.
 var enabled := true
+var last_save_ok := false
 var _loading := false
 var _timer: Timer
 
@@ -28,6 +29,7 @@ func _notification(what: int) -> void:
 		get_tree().quit()
 
 func save_game() -> void:
+	last_save_ok = false
 	if not enabled or _loading:
 		return
 	var tank := get_tree().get_first_node_in_group("tank")
@@ -37,6 +39,8 @@ func save_game() -> void:
 	_timer.stop()
 	var fish_records: Array = []
 	for fish in tank.get_node("Fishes").get_children():
+		if fish.has_meta("visitor"):
+			continue
 		if fish.data == null or fish.data.resource_path.is_empty():
 			push_warning("Cannot save fish without a FishData resource path.")
 			return
@@ -45,10 +49,16 @@ func save_game() -> void:
 			"fullness": fish.fullness,
 			"position": [fish.position.x, fish.position.y],
 		})
+	if GameState.tank_id.is_empty():
+		GameState.tank_id = Crypto.new().generate_random_bytes(16).hex_encode()
 	var record := {
 		"version": 1,
+		"tank_id": GameState.tank_id,
+		"gift_outbox": GameState.gift_outbox,
+		"gift_receipts": GameState.gift_receipts,
 		"saved_at": int(Time.get_unix_time_from_system()),
 		"money": GameState.money,
+		"player_name": GameState.player_name,
 		"fish": fish_records,
 	}
 	# Replace only after the complete JSON has been written successfully.
@@ -62,6 +72,8 @@ func save_game() -> void:
 	file.close()
 	if error != OK or DirAccess.rename_absolute(SAVE_PATH + ".tmp", SAVE_PATH) != OK:
 		push_warning("Could not finish saving game.")
+		return
+	last_save_ok = true
 
 # Called by Tank once its children are ready. False means use default Goldy.
 func load_tank(tank: Node2D) -> bool:
@@ -95,7 +107,11 @@ func load_tank(tank: Node2D) -> bool:
 			return false
 		resources.append(data)
 	_loading = true
+	GameState.tank_id = str(record.get("tank_id", ""))
+	GameState.gift_outbox = record.get("gift_outbox", {}) if record.get("gift_outbox", {}) is Dictionary else {}
+	GameState.gift_receipts = record.get("gift_receipts", {}) if record.get("gift_receipts", {}) is Dictionary else {}
 	GameState.money = int(record.money)
+	GameState.player_name = str(record.get("player_name", "Player")).left(24)
 	for i in record.fish.size():
 		var entry: Dictionary = record.fish[i]
 		var fish := FISH_SCENE.instantiate()

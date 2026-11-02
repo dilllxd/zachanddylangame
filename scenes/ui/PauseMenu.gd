@@ -20,11 +20,13 @@ func _on_resume_pressed() -> void:
 	set_paused(false)
 
 func _on_title_pressed() -> void:
+	Net.leave()
 	SaveManager.save_game()
 	set_paused(false)
 	get_tree().change_scene_to_file("res://scenes/ui/TitleScreen.tscn")
 
 func _on_quit_pressed() -> void:
+	Net.leave()
 	SaveManager.save_game()
 	get_tree().paused = false
 	get_tree().quit()

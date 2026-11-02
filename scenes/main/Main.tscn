@@ -4,6 +4,7 @@
 [ext_resource type="PackedScene" path="res://scenes/ui/HUD.tscn" id="2"]
 [ext_resource type="PackedScene" path="res://scenes/ui/PauseMenu.tscn" id="3"]
 [ext_resource type="PackedScene" path="res://scenes/ui/Shop.tscn" id="4"]
+[ext_resource type="PackedScene" path="res://scenes/ui/VisitMenu.tscn" id="5"]
 
 [node name="Main" type="Node" unique_id=101686412]
 
@@ -17,5 +18,7 @@ position = Vector2(176, 99)
 [node name="HUD" parent="UI" unique_id=637236310 instance=ExtResource("2")]
 
 [node name="Shop" parent="UI" unique_id=1250213258 instance=ExtResource("4")]
+
+[node name="VisitMenu" parent="UI" unique_id=1886720520 instance=ExtResource("5")]
 
 [node name="PauseMenu" parent="UI" unique_id=897635127 instance=ExtResource("3")]

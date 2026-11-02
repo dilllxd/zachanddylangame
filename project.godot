@@ -20,6 +20,8 @@ Events="*uid://uib413m7hsib"
 GameState="*uid://cc610u18gtf2m"
 SaveManager="*uid://m3rmubi2ii5q"
 
+Net="*res://autoload/Net.gd"
+
 [editor_plugins]
 
 enabled=PackedStringArray()

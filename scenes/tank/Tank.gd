@@ -27,13 +27,17 @@ func _unhandled_input(event: InputEvent) -> void:
 	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
 		var p := to_local(get_global_mouse_position())
 		if navigator.is_open(p):
-			drop_food(p)
+			if Net.visiting():
+				Net.request_food(p)
+			else:
+				drop_food(p)
 			get_viewport().set_input_as_handled()
 
-func drop_food(p: Vector2, food: FoodData = null, payout_mult: float = 1.0) -> void:
+func drop_food(p: Vector2, food: FoodData = null, payout_mult: float = 1.0, feeder: String = "") -> void:
 	var pellet = pellet_scene.instantiate()
 	pellet.position = p
 	pellet.food = food
+	pellet.feeder = feeder
 	pellet.payout_mult = payout_mult
 	pellet.floor_y = floor_at(p.x, p.y)
 	$Food.add_child(pellet)
@@ -41,6 +45,8 @@ func drop_food(p: Vector2, food: FoodData = null, payout_mult: float = 1.0) -> v
 
 
 func _on_fish_bought(data: FishData) -> void:
+	if Net.visiting():
+		return
 	var fish := preload("res://scenes/fish/Fish.tscn").instantiate()
 	fish.data = data
 	fish.position = navigator.random_open_point()

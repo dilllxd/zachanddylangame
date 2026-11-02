@@ -22,7 +22,7 @@ func _ready() -> void:
 
 func _process(_delta: float) -> void:
 	# Always processing keeps this hidden throughout pause, including external pauses.
-	visible = not get_tree().paused
+	visible = not get_tree().paused and not Net.visiting()
 
 func _toggle() -> void:
 	if not get_tree().paused:
@@ -56,7 +56,7 @@ func _update_affordability(total: int) -> void:
 		_buttons[i].disabled = total < catalog[i].price
 
 func _buy(data: FishData) -> void:
-	if get_tree().paused or not catalog.has(data):
+	if get_tree().paused or Net.visiting() or not catalog.has(data):
 		return
 	if GameState.spend(data.price):
 		Events.fish_bought.emit(data)

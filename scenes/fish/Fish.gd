@@ -68,8 +68,9 @@ func _process(delta: float) -> void:
 func eat(pellet: Node2D) -> void:
 	hunger.feed(pellet.nutrition())
 	var payout := roundi((data.pellet_value if data else 5) * pellet.payout_mult)
+	var feeder: String = pellet.feeder
 	pellet.eat()
 	bar.show_after_eating()
 	seeker.food_target = null
-	Events.fish_fed.emit(self, payout)
+	Net.payout(self, payout, feeder)
 	movement.pick_wander_target()
