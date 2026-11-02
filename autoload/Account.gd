@@ -153,6 +153,7 @@ func logout() -> void:
 	_verified = false
 	token = ""
 	username = ""
+	status = ""
 	offline = false
 	_pending = {}
 	SaveManager.SAVE_PATH = "user://save.json"
