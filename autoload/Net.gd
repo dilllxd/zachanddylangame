@@ -1,6 +1,11 @@
 extends Node
 ## Room transport and host-authoritative simulation. No high-level RPC or remote code.
 signal changed
+signal rooms_changed
+var rooms: Array = []
+var browsing := false
+var _browser: WebSocketPeer
+var _list_elapsed := 2.0
 const FISH := preload("res://scenes/fish/Fish.tscn")
 var relay_url := "wss://fish.40-160-53-64.sslip.io/relay"
 var mode := ""
@@ -36,7 +41,8 @@ func set_player_name(value: String) -> void:
 func open_tank() -> void:
 	if mode.is_empty() and tank() != null:
 		SaveManager.save_game()
-		_connect({"op": "host"}, "hosting")
+		_connect({"op": "host", "name": GameState.player_name,
+			"fish_count": tank().get_node("Fishes").get_child_count()}, "hosting")
 
 func visit(room: String, fish: Node) -> void:
 	if not mode.is_empty() or tank() == null:
@@ -72,6 +78,7 @@ func _to_host(body: Dictionary) -> void:
 	_send({"op": "send", "body": body})
 
 func _process(delta: float) -> void:
+	_poll_rooms(delta)
 	if socket == null:
 		return
 	socket.poll()
@@ -112,10 +119,10 @@ func _receive(m: Dictionary) -> void:
 		"hosted":
 			mode = "host"
 			code = str(m.get("code", ""))
-			status = "Tank open · " + code
+			status = "Tank open to everyone"
 		"joined":
 			mode = "visitor"
-			status = "Visiting · " + code
+			status = "Visiting a public tank"
 			_host_id = ""
 			_show_visit()
 		"arrival":
@@ -353,3 +360,38 @@ func leave(message: String = "Back in your tank.") -> void:
 	status = message
 	SaveManager.save_game()
 	changed.emit()
+
+
+func browse_rooms(active: bool) -> void:
+	browsing = active
+	if not active:
+		if _browser != null:
+			_browser.close()
+		_browser = null
+		return
+	_list_elapsed = 2.0
+	_poll_rooms(0.0)
+
+func _poll_rooms(delta: float) -> void:
+	if not browsing:
+		return
+	if _browser == null:
+		_browser = WebSocketPeer.new()
+		if _browser.connect_to_url(relay_url) != OK:
+			_browser = null
+			return
+	_browser.poll()
+	_list_elapsed += delta
+	if _browser.get_ready_state() == WebSocketPeer.STATE_OPEN:
+		if _list_elapsed >= 2.0:
+			_list_elapsed = 0.0
+			_browser.send_text(JSON.stringify({"op": "list"}))
+		while _browser.get_available_packet_count() > 0:
+			var reply: Variant = JSON.parse_string(_browser.get_packet().get_string_from_utf8())
+			if reply is Dictionary and reply.get("op") == "rooms" and reply.get("rooms") is Array:
+				rooms = reply.rooms.slice(0, 128)
+				rooms_changed.emit()
+	elif _browser.get_ready_state() == WebSocketPeer.STATE_CLOSED:
+		_browser = null
+		rooms = []
+		rooms_changed.emit()

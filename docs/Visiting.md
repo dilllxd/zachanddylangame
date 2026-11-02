@@ -1,5 +1,5 @@
 # Visiting tanks
-Use Visit tanks while playing. Set your name, open your tank and share its room code privately. A friend enters the code and chooses one owned fish to bring. Neither player needs port forwarding. Both need the same game/catalog version.
+Use Visit tanks while playing. Set your name and open your tank to list it publicly. Visitors see host names, fish counts and visitor counts refreshed every two seconds. Click Join beside a tank, choose one owned fish and visit. Rooms disappear when the host disconnects. Neither player needs port forwarding. Both need the same game/catalog version.
 
 The host simulates all fish and pellets. Snapshots arrive about ten times per second; visitors interpolate visual sprites, never run a second economy. The visitor's original fish, food and positions remain frozen and saved locally. Host pause stops simulation and rejects feeding; visitor pause blocks their local feeding but networking continues. Leave or a lost connection restores the visitor's tank. Closing a host room removes visiting fish, never owned or gifted fish.
 
@@ -9,8 +9,8 @@ Gift brought fish opens a permanent-transfer confirmation. The donor first saves
 
 Player names are capped at 24 characters and stored in the version-1 save alongside money and fish. Existing saves load with Player as the default. Net.gd owns transport and room state; VisitMenu owns controls; Tank only forwards visitor clicks and tags food. Fish hands payout attribution to Net, which uses the existing event bus for ordinary single-player earnings.
 
-The relay is plaintext and room-code protected, not authenticated. Share codes privately, not in public posts. Do not send secrets. Only shipped FishData catalog paths may be loaded from peer messages; no scripts or arbitrary resources are accepted. Internet-hosted or adversarial play would need TLS, accounts, stronger economy validation, and server-side durable transfer storage.
+Rooms are public and unauthenticated. Anyone can visit an open tank. The default relay uses HTTPS/WSS; do not send secrets. The relay caps rooms at 128, visitors at eight per tank and names at 24 characters. Only shipped FishData catalog paths may be loaded from peer messages; no scripts or arbitrary resources are accepted. Internet-hosted or adversarial play would need TLS, accounts, stronger economy validation, and server-side durable transfer storage.
 
-See Relay.md for service deployment/protocol. The default endpoint is ws://40.160.53.64:42067/.
+See Relay.md for service deployment/protocol. The default endpoint is wss://fish.40-160-53-64.sslip.io/relay.
 
 Brought and gifted fish retain tier. Relay arrival preserves optional tier (default 0) validated as integer 0..3. Snapshots carry tier for visual scale/tint.

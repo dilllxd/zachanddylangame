@@ -41,3 +41,10 @@ RELAY_URL=ws://40.160.53.64:42067/ npm test tests public deployment.
 Local and public tests PASS host/join, 8 visitors cap, name cap, bad codes/JSON/fish,
 targeted/broadcast forwarding, visitor->host, isolation, forbidden broadcast,
 departure, host close cleanup, 64KiB cap, binary rejection and 40/s limit.
+
+Public discovery: clients send {"op":"list"} on a separate lobby WebSocket.
+The relay replies {"op":"rooms","rooms":[{"code":"…","name":"Player","fish_count":1,"visitor_count":0}]}.
+Internal IDs remain transport-only; players never enter or share them.
+Host requests include name (sanitized, max 24) and fish_count. Snapshots update the owned fish count.
+Listings poll every two seconds and disappear on host disconnect. Existing limits remain 128 rooms and eight visitors each.
+Production supports WSS /relay and legacy desktop WS port 42067. Source and compose are in scripts/relay.
